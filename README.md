@@ -8,98 +8,92 @@ IaC has many benefits for businesses including to cost reduction, eliminate conf
 
 Ansible allows users to quickly and easily deploy multi-tier architecture.
 
-Ansible is agentless and only needs to be installed on the controlled (master node). The systems being controlled do not need to have ansible installed.
+Ansible is agentless and only needs to be installed on the controlled (master node); The systems being controlled do not need to have ansible installed.
 
 ![](images/ansible-diagram.webp)
 
-## Section 1: Creating local infrastructure using Ansible and Vagrant
+## **Section 1**: Provision and upgrade VMs using Vagrant
 
-Ensure to have a vagrant configuration file setup in a suitable directory.
+In this guide, three virtual machines are configured through vagrant containing the provisions for a controller, web application and database with the following network configuration.
 
-> Note: The vagrant file will contain the configuration for the controller, app and db.
+***controller***: 192.168.33.12
 
-Run the virtual machine and check its status.
+***web***: 192.168.33.10
+
+***db***: 192.168.33.11
+
+> Note: The vagrant file will contain the configuration for the controller, app and db. For this example, ubuntu 18.04 is the OS.
+
+**Step 1**: Run the virtual machine and check that all three virtual machines are running.
 
 ```bash
-vagrant up # Run the virtual machine
+vagrant up
 
-vagrant status # Check the status
+vagrant status
 ```
 
-Access the controller through SSH.
+![](images/status.PNG)
+
+**Step 2**: Access each of the virtual machines through SSH and update & upgrade the APT packages.
 
 ```bash
-vagrant ssh controller
-```
+vagrant ssh <vm>
 
-Access the web application through ssh in the controller, a password may also be required.
-
-```bash
-ssh vagrant@192.168.33.10 #password: vagrant
-```
-
-Update the APT package manager in the web virtual machine and exit back to the controller.
-
-```bash
-sudo apt-get update -y
-```
-
-Access the database through ssh in the controller, a password may also be required. Repeat the update on the APT package manager and exit back to the controller.
-
-```bash
-ssh vagrant@192.168.33.11 #password: vagrant
-
-sudo apt-get update -y
+sudo apt-get update -y && sudo apt-get upgrade -y
 
 exit
 ```
 
-To check if you are in the controller, check the ansible version.
+**Step 3**: SSH back into the controller and establish its connection to the two virtual machines through ssh, the user will be prompted with a password. 
+
+> Note: Remember to be in the controller before establishing the connection. The password to access these VMs is vagrant.
 
 ```bash
-ansible --version
+ssh vagrant@<vm-ip-address>
+
+exit
 ```
 
-In the controller, retrieve all the dependencies common to the environment.
+**Step 4**: Return back to the controller and install ansible.
 
 ```bash
+sudo apt update -y && sudo apt upgrade -y
+
 sudo apt install software-properties-common
-```
 
-Add the ansible packages to the APT package manager and install the packages.
-
-```bash
 sudo apt-add-repository ppa:ansible/ansible
 
 sudo apt-get update -y
-```
 
-Install ansible in the controllers virtual machine.
-
-```bash
 sudo apt install ansible
+
+ansible --version
 ```
 
-Check if the required repository for ansible is now available.
-
-```bash
-cd /etc/ansible
-```
-
-
+**Step 5**: New configuration files are now available to provision ansible and the controller to the two virtual machines; display the newly created directories and switch to the ansible directory.
 
 ```bash
 sudo apt install tree
+
+tree
+
+cd /etc/ansible
 ```
 
-Look for all the hosts in the agent nodes, inside the posts file and if any found, a ping request is sent.
+![](images/cd.PNG)
+
+**Step 6**: Access the `hosts` file and provide the required information to access the virtual machines.
+
+```bash
+sudo nano hosts
+```
+
+![](images/nano.PNG)
+
+**Step 7**: Check to see the connections have been established. `Ping` looks for all the hosts in the agent nodes, inside the posts file and if any found, a ping request is sent.
 
 ```bash
 sudo ansible all -m ping
 ```
 
-Within the current directory, access the hosts file and enter the IP address of the web application.
-
-```bash
-sudo nano hosts
-```
+![](images/success.PNG)
