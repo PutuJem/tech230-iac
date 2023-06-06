@@ -2,7 +2,7 @@
 
 IaC is the managing and provisioning of instrastructure through code instead of manual processes.
 
-IaC has many benefits for businesses including to cost reduction, eliminate configuration drift and stable & scalable environments.
+IaC has many benefits for businesses including to reduced cost through saving time and resources, eliminate configuration drift and ensure provisioning of stable & scalable environments.
 
 ## Why ansible?
 
