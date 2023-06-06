@@ -4,7 +4,7 @@ IaC is the managing and provisioning of instrastructure through code instead of 
 
 IaC has many benefits for businesses including to reduce cost through saving time and resources, eliminate configuration drift and ensure provisioning of stable & scalable environments.
 
-## Why ansible?
+## Why Ansible?
 
 Ansible allows users to quickly and easily deploy multi-tier architecture.
 
