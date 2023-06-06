@@ -102,12 +102,12 @@ sudo ansible all -m ping
 
 ## **Section 2**: Deploying and running an application on the web node
 
-A prerequisite reminder for this section is to have the application folder present in the controller user directory. If not, ensure the file is present in the local vagrant directory and that the vagrant file contains the sync command, then destroy and start vagrant again.
+A prerequisite reminder for this section is to have the application folder present in the controller user directory. If not, ensure the file is present in the local vagrant directory and that the vagrant file contains the sync_file command to transfer it to the VM; proceed to destroy and start vagrant again.
 
 **Step 8**: YAML defines its provisioning script as a playbook, containing a set of tasks to be executed. Create this file within the `/etc/ansible` directory.
 
-```yaml
-sudo nano config_nginx_web.yml
+```bash
+sudo nano <playbook-name>.yml
 ```
 
 **Step 9**: The following sudo code and commands.
@@ -166,7 +166,7 @@ sudo nano config_nginx_web.yml
 **Step 10**: Execute the playbook to install the app dependencies and run the app. Check the app is running on the web browser.
 
 ```bash
-sudo ansible-playbook config_nginx_web.yml
+sudo ansible-playbook <playbook-name>.yml
 ```
 
 ![](images/task.PNG)
