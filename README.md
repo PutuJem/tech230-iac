@@ -8,7 +8,7 @@ IaC has many benefits for businesses including to reduce cost through saving tim
 
 Ansible allows users to quickly and easily deploy multi-tier architecture.
 
-Ansible is agentless and only needs to be installed on the controlled (master node); The systems being controlled do not need to have ansible installed.
+Ansible is agentless and only needs to be installed on the controller (or master node); The systems being controlled do not need to have ansible installed.
 
 ![](images/ansible-diagram.webp)
 
