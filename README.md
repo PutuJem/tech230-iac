@@ -16,6 +16,8 @@ Ansible is agentless and only needs to be installed on the controller (or master
 
 In this guide, three virtual machines are configured through vagrant containing the provisions for a controller, web application and database with the following network configuration.
 
+A prerequisite to this guide is to have the application and associated database folder within the same directory as the vagrant file. Ensure to also sync these files so they appear within the controller once vagrant is run.
+
 ***controller***: 192.168.33.12
 
 ***web***: 192.168.33.10
@@ -97,3 +99,76 @@ sudo ansible all -m ping
 ```
 
 ![](images/success.PNG)
+
+## **Section 2**: Deploying and running an application on the web node
+
+A prerequisite reminder for this section is to have the application folder present in the controller user directory. If not, ensure the file is present in the local vagrant directory and that the vagrant file contains the sync command, then destroy and start vagrant again.
+
+**Step 8**: YAML defines its provisioning script as a playbook, containing a set of tasks to be executed. Create this file within the `/etc/ansible` directory.
+
+```yaml
+sudo nano config_nginx_web.yml
+```
+
+**Step 9**: The following sudo code and commands.
+
+```yaml
+# create a playbook to install the applications dependencies and run
+
+# add the 3 dashes --- to start the YAML file
+
+---
+
+# add the name of the host
+- hosts: web
+
+# gather additional facts about the steps
+  gather_facts: yes
+
+# add admins access to this file
+  become: true
+
+# add instructions to install + enable nginx - ensure status is running
+  tasks:
+  - name: Installing Nginx
+    apt: pkg=nginx state=present
+
+# add app folder to the web VM
+  - name: Transfer app folder to web
+    become: true
+    synchronize:
+      src: ~/app
+      dest: /home/vagrant
+
+# add instructions to install nodejs
+  - name: Installing nodejs
+    apt: pkg=nodejs state=present
+
+# kill all nodejs processes before starting
+  - name: Kill all node processes
+    shell: killall node
+    args:
+      chdir: /home/vagrant/app/app
+
+# add instructions to install npm
+  - name: Installing npm
+    shell: npm install
+    args:
+      chdir: /home/vagrant/app/app
+
+# start app
+  - name: Start the app
+    shell: npm start
+    args:
+      chdir: /home/vagrant/app/app
+```
+
+**Step 10**: Execute the playbook to install the app dependencies and run the app. Check the app is running on the web browser.
+
+```bash
+sudo ansible-playbook config_nginx_web.yml
+```
+
+![](images/task.PNG)
+
+![](images/run1.PNG)

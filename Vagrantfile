@@ -17,6 +17,9 @@
     controller.vm.hostname = 'controller'
     # synced_folder to run provision.sh to set up ansible controller
     
+    # Transfer app file into controller
+    controller.vm.synced_folder "app", "/home/vagrant/app"
+    
     controller.vm.network :private_network, ip: "192.168.33.12"
     
     #config.hostsupdater.aliases = ["development.controller"] 

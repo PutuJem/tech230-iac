@@ -1,1 +1,1 @@
-{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"D:/User/Jem/Python/tech_230/tech230-iac","disabled":false,"__vagrantfile":true}}}
+{"virtualbox":{"/home/vagrant/app":{"guestpath":"/home/vagrant/app","hostpath":"D:/User/Jem/Python/tech_230/tech230-iac/app","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"D:/User/Jem/Python/tech_230/tech230-iac","disabled":false,"__vagrantfile":true}}}
