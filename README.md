@@ -175,7 +175,15 @@ sudo ansible-playbook <playbook-name>.yml
 
 ## **Section 3**: Using Ansible to configure the database
 
-Step 11: Create a new YAML file in the `/etc/ansible/` directory.
+**Step 11**: Create a new YAML file in the `/etc/ansible/` directory.
+
+```bash
+cd /etc/ansible/
+
+sudo nano setup_mongodb.yml
+```
+
+**Step 12**: Provide the following YAML commands into the file.
 
 ```bash
 # installing required version of mongodb in db-server
@@ -211,3 +219,23 @@ Step 11: Create a new YAML file in the `/etc/ansible/` directory.
       state: restarted
       enabled: yes
 ```
+
+**Step 13**: Run the file and ensure ansible successfully completes all the tasks.
+
+```bash
+sudo ansible-playbook setup_mongo.yml
+```
+
+![](images/run2.png)
+
+**Step 14**: Check that the `mongodb.conf` file has been amended and mongodb is running.
+
+```bash
+sudo ansible db -a "sudo cat /etc/mongodb.conf" --ask-vault-pass
+
+sudo ansible db -a "sudo systemctl status mongodb" --ask-vault-pass
+```
+
+![](images/cat.png)
+
+![](images/status1.png)
