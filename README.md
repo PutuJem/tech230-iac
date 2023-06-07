@@ -226,7 +226,7 @@ sudo nano setup_mongodb.yml
 sudo ansible-playbook setup_mongo.yml
 ```
 
-![](images/run2.png)
+![](images/run2.PNG)
 
 **Step 14**: Check that the `mongodb.conf` file has been amended and mongodb is running.
 
@@ -236,6 +236,6 @@ sudo ansible db -a "sudo cat /etc/mongodb.conf" --ask-vault-pass
 sudo ansible db -a "sudo systemctl status mongodb" --ask-vault-pass
 ```
 
-![](images/cat.png)
+![](images/cat.PNG)
 
-![](images/status1.png)
+![](images/status1.PNG)
