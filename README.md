@@ -10,9 +10,9 @@ Ansible allows users to quickly and easily deploy multi-tier architecture.
 
 Ansible is agentless and only needs to be installed on the controller (or master node); The systems being controlled do not need to have ansible installed.
 
-![](images/ansible-diagram.webp)
+![](images/diagram.png)
 
-## **Section 1**: Provision and upgrade VMs using Vagrant
+## **Section 1**: Using Vagrant to configure an Ansible architecture
 
 In this guide, three virtual machines are configured through vagrant containing the provisions for a controller, web application and database with the following network configuration.
 
@@ -100,7 +100,7 @@ sudo ansible all -m ping
 
 ![](images/success.PNG)
 
-## **Section 2**: Deploying and running an application on the web node
+## **Section 2**: Using Ansible to deploy a running web application
 
 A prerequisite reminder for this section is to have the application folder present in the controller user directory. If not, ensure the file is present in the local vagrant directory and that the vagrant file contains the sync_file command to transfer it to the VM; proceed to destroy and start vagrant again.
 
