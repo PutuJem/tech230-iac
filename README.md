@@ -172,3 +172,42 @@ sudo ansible-playbook <playbook-name>.yml
 ![](images/task.PNG)
 
 ![](images/run1.PNG)
+
+## **Section 3**: Using Ansible to configure the database
+
+Step 11: Create a new YAML file in the `/etc/ansible/` directory.
+
+```bash
+# installing required version of mongodb in db-server
+# hosts entries are already done - ssh/password authentication in place
+
+---
+
+# hosts name
+- hosts: db
+
+# get facts/logs
+  gather_facts: yes
+
+# admin access
+  become: True
+
+# add instructions
+  tasks:
+
+    # install and run mongodb
+  - name: setting up mongodb
+    apt: pkg=mongodb state=present
+
+    # amend the mongodb config file
+  - name: replace ip-bind to allow any any IP to access
+    command: sudo sed -i 's+127.0.0.1+0.0.0.0+' /etc/mongodb.conf
+    command: sudo sed -i 's+#port = 27017+port = 27017+' /etc/mongodb.conf
+
+    # restart and enable mongodb
+  - name: restart and enable mongodb
+    ansible.builtin.service:
+      name: mongodb
+      state: restarted
+      enabled: yes
+```
