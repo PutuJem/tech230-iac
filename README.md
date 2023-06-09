@@ -239,3 +239,274 @@ sudo ansible db -a "sudo systemctl status mongodb" --ask-vault-pass
 ![](images/cat.PNG)
 
 ![](images/status1.PNG)
+
+## **Section 4**: Using Terraform to deploy an EC2 instance
+
+A prerequisite to this task is to first the correct binary file of Terraform through ther [hashicorp website](https://developer.hashicorp.com/terraform/downloads). Ensure the file is made available through firstly moving it to an appropriate programs folder within your hardrive, then executing the file with administator permissions. Follow this up by the file is available on PATH as an environment variable.
+
+**Step 15**: Create a new directory for terraform; initialise terraform and create a new file.
+
+```bash
+terraform init
+
+sudo nano main.tf
+```
+
+**Step 16**: Assign the service to the file as AWS.
+
+```terraform
+provider "aws" {
+	region = "eu-west-1"
+}
+```
+
+**Step 17**: Configure the EC2 instance as required.
+
+```terraform
+resource "aws_instance" "app_instance"{
+
+	ami = "ami-00e8ddf087865b27f"
+	instance_type = "t2.micro"
+	associate_public_ip_address = true
+
+	tags = {
+		Name = "james-tech230-terraform-app"
+	}
+}
+```
+
+## **Section 5**: Using Terraform deploy a two tier architecture within a VPC.
+
+**Step 18**: Create a VPC using the default CIDR block.
+
+```terraform
+resource "aws_vpc" "main" {
+ cidr_block = "10.0.0.0/16"
+ 
+ tags = {
+   Name = "tech230-james-app-vpc"
+ }
+}
+```
+
+**Step 19**: Configure the public and private subnet with different CIDR blocks and AZ.
+
+```terraform
+resource "aws_subnet" "public_subnet" {
+ vpc_id            = aws_vpc.main.id
+ cidr_block        = "10.0.2.0/24"
+ availability_zone = "eu-west-1a"
+ 
+ tags = {
+   Name = "tech230-james-app-public-subnet"
+ }
+}
+ 
+resource "aws_subnet" "private_subnet" {
+ vpc_id            = aws_vpc.main.id
+ cidr_block        = "10.0.3.0/24"
+ availability_zone = "eu-west-1b"
+ 
+ tags = {
+   Name = "tech230-james-app-private-subnet"
+ }
+}
+```
+
+**Step 20**: Create the internet gateway (IG) and associate it to the VPC.
+
+```terraform
+resource "aws_internet_gateway" "gw" {
+ vpc_id = aws_vpc.main.id
+ tags = {
+   Name = "tech230-james-app-IG"
+ }
+}
+```
+
+**Step 21**: Create a second route table for the public subnet and link the association.
+
+```terraform
+# create second route table for public subnet
+
+resource "aws_route_table" "second_rt" {
+ vpc_id = aws_vpc.main.id
+ 
+ route {
+   cidr_block = "0.0.0.0/0"
+   gateway_id = aws_internet_gateway.gw.id
+ }
+ 
+ tags = {
+   Name = "tech230-james-app-public-rt"
+ }
+}
+
+resource "aws_route_table_association" "public_subnet_asso" {
+ subnet_id      = aws_subnet.public_subnet.id
+ route_table_id = aws_route_table.second_rt.id
+}
+```
+
+![](images/terraform-vpc.PNG)
+
+**Step 22**: Configure the security groups for the public and private subnets; remember to link this to the VPC.
+
+```terraform
+# Deploy Public Subnet Security Group
+
+resource "aws_security_group" "public_subnet_sg" {
+	name        = "public_subnet_sg"
+	description = "Allow Port 80 (HTTP), 22 (SSH) and 3000 (NodeJS)"
+	vpc_id      = aws_vpc.main.id
+
+	ingress {
+		from_port   = 80
+		to_port     = 80
+		protocol    = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+	ingress {
+		from_port   = 22
+		to_port     = 22
+		protocol    = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+	ingress {
+		from_port   = 3000
+		to_port     = 3000
+		protocol    = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+	egress {
+		from_port   = 0
+		to_port     = 0
+		protocol    = "-1"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+}
+
+# Deploy Private Subnet Security Group
+
+resource "aws_security_group" "private_subnet_sg" {
+	name        = "private_subnet_sg"
+	description = "Allow 27017 (MongoDB)"
+	vpc_id      = aws_vpc.main.id
+
+	ingress {
+		from_port   = 27017
+		to_port     = 27017
+		protocol    = "tcp"
+		cidr_blocks = ["10.0.0.0/16"]
+	}
+	egress {
+		from_port   = 0
+		to_port     = 0
+		protocol    = "-1"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+}
+```
+
+**Step 23**: Deploy the two EC2 instances containing the AMI for the app and database as well as the dependencies within the userdata.
+
+```terraform
+# Deploy EC2 Instance for Database in Private Subnet
+
+resource "aws_instance" "db_instance" {
+  ami                         = "ami-06c5f4ed7a203bed8"
+  instance_type               = "t2.micro"
+  key_name					  = "tech230"
+  availability_zone           = "eu-west-1b"
+  vpc_security_group_ids      = [aws_security_group.private_subnet_sg.id]
+  subnet_id                   = aws_subnet.private_subnet.id
+  private_ip 				  = "10.0.3.122"
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "tech230-james-db-terraform"
+  }
+}
+
+# Deploy EC2 Instance for Web Application in Public Subnet
+
+resource "aws_instance" "app_instance" {
+  ami                         = "ami-0136ddddd07f0584f"
+  instance_type               = "t2.micro"
+  key_name					  = "tech230"
+  availability_zone           = "eu-west-1a"
+  vpc_security_group_ids      = [aws_security_group.public_subnet_sg.id]
+  subnet_id                   = aws_subnet.public_subnet.id
+  associate_public_ip_address = true
+  depends_on 		  = [aws_instance.db_instance]
+  user_data                   = <<-EOF
+        #!/bin/bash
+        # Update the sources list and Upgrade any available packages
+        sudo apt update -y && sudo apt upgrade -y
+
+        # gets sources list that could potentially be needed for the following installations
+        sudo apt update
+
+        # Installs Nginx
+        sudo apt install nginx -y
+
+        # Installs git
+        sudo apt install git -y
+
+        # sets source to retrieve nodejs
+        curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+
+        # installs node.js
+        sudo apt install -y nodejs
+
+        # Enables Nginx to run on start up of API or VM
+        sudo systemctl enable nginx
+
+        #echo "export DB_HOST=mongodb://10.0.3.122:27017/posts" >> ~/.bashrc
+        #source ~/.bashrc
+        export DB_HOST=mongodb://10.0.3.122:27017/posts
+
+        # clone repo with app folder into folder called 'repo'
+        git clone https://github.com/daraymonsta/CloudComputingWithAWS repo
+
+        # install the app (must be after db vm is finished provisioning)
+        cd repo/app
+        npm install
+
+        # seed database
+        echo "Clearing and seeding database..."
+        node seeds/seed.js
+        echo "  --> Done!"
+
+        # start the app (could also use 'npm start')
+
+        # using pm2
+
+        # install pm2
+
+        sudo npm install pm2 -g
+
+        # kill previous app background processes
+
+        pm2 kill
+
+        # start the app in the background with pm2
+
+        pm2 start app.js
+        EOF
+
+  tags = {
+    Name = "tech230-james-app-terraform"
+  }
+}
+```
+
+![](images/terraform-ec2.PNG)
+
+![](images/terraform-sparta.PNG)
+
+**Step 24**: When finished, destroy terraform and all of the services that have been initialised.
+
+```terraform
+terraform destroy
+```
